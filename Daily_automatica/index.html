@@ -1,0 +1,505 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f5f4ef">
+  <title>Daily | Cuaderno de equipo</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      color-scheme: light;
+      --paper: #f5f4ef;
+      --white: #fffefa;
+      --ink: #20231f;
+      --muted: #72756e;
+      --line: #e2e1d9;
+      --green: #176b57;
+      --green-dark: #105141;
+      --green-pale: #e2efe8;
+      --coral: #d4674d;
+      --coral-pale: #f7e9e2;
+      --serif: "Playfair Display", Georgia, serif;
+      --sans: "DM Sans", "Segoe UI", sans-serif;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--paper); color: var(--ink); font-family: var(--sans); font-size: 14px; }
+    button, input, textarea { font: inherit; }
+    button { color: inherit; }
+    .app-shell { min-height: 100vh; display: grid; grid-template-columns: 248px minmax(0, 1fr); }
+    .rail { position: sticky; top: 0; height: 100vh; padding: 28px 18px 20px; border-right: 1px solid var(--line); background: #f0efe9; display: flex; flex-direction: column; }
+    .brand { display: flex; align-items: center; gap: 11px; padding: 2px 8px 29px; }
+    .brand-mark { width: 34px; height: 34px; display: grid; place-items: center; border-radius: 10px 10px 10px 3px; background: var(--green); color: white; font-family: var(--serif); font-size: 21px; }
+    .brand-name { font-size: 15px; font-weight: 700; letter-spacing: .02em; }
+    .brand-caption { margin-top: 2px; color: var(--muted); font-size: 11px; }
+    .rail-label { padding: 0 9px; margin: 4px 0 10px; color: #8a8c84; font-size: 10px; font-weight: 700; letter-spacing: .13em; text-transform: uppercase; }
+    .member-list { display: grid; gap: 4px; }
+    .member-button { width: 100%; border: 0; border-radius: 7px; padding: 10px 10px; display: flex; align-items: center; gap: 10px; background: transparent; cursor: pointer; text-align: left; color: #53564f; transition: background .18s, color .18s; }
+    .member-button:hover { background: #e8e7df; }
+    .member-button.active { background: var(--white); color: var(--ink); box-shadow: 0 1px 3px #20231f0b; }
+    .avatar { width: 27px; height: 27px; flex: 0 0 27px; display: grid; place-items: center; border-radius: 50%; background: #deded4; color: #52564f; font-size: 10px; font-weight: 700; }
+    .member-button.active .avatar { background: var(--green-pale); color: var(--green-dark); }
+    .member-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 12px; font-weight: 600; }
+    .member-progress { width: 6px; height: 6px; flex: 0 0 6px; margin-left: auto; border-radius: 50%; background: #c4c5bc; }
+    .member-progress.done { background: #62a183; }
+    .add-member { margin: 12px 5px 0; padding: 9px 10px; border: 1px dashed #c9c9c0; border-radius: 7px; background: transparent; color: #555a53; cursor: pointer; text-align: left; font-size: 12px; }
+    .add-member:hover { border-color: var(--green); color: var(--green-dark); }
+    .rail-bottom { margin-top: auto; padding: 14px 9px 0; border-top: 1px solid var(--line); }
+    .autosave { display: flex; align-items: center; gap: 7px; color: var(--muted); font-size: 11px; }
+    .save-dot { width: 7px; height: 7px; border-radius: 50%; background: #64a583; }
+    .workspace { width: 100%; max-width: 1160px; padding: 34px clamp(24px, 5vw, 72px) 64px; margin: 0 auto; }
+    .topline { display: flex; align-items: flex-start; justify-content: space-between; gap: 24px; padding-bottom: 24px; border-bottom: 1px solid var(--line); }
+    .eyebrow { color: var(--green); font-size: 10px; font-weight: 700; letter-spacing: .16em; text-transform: uppercase; }
+    h1 { margin: 8px 0 0; font-family: var(--serif); font-size: clamp(26px, 3vw, 36px); font-weight: 600; line-height: 1.18; }
+    .top-actions { display: flex; gap: 9px; padding-top: 5px; }
+    .button { min-height: 38px; border: 1px solid var(--line); border-radius: 6px; padding: 0 13px; background: var(--white); cursor: pointer; font-size: 12px; font-weight: 600; transition: transform .15s, border-color .15s, background .15s; }
+    .button:hover { border-color: #a6afa5; transform: translateY(-1px); }
+    .button-primary { border-color: var(--green); background: var(--green); color: white; }
+    .button-primary:hover { border-color: var(--green-dark); background: var(--green-dark); }
+    .button-danger { border-color: #e2c4bb; background: #fffaf8; color: #a64b37; }
+    .button-danger:hover { border-color: #cf9585; background: #fdf1ed; }
+    .button-quiet { background: transparent; }
+    .daily-meta { display: grid; grid-template-columns: minmax(210px, 1fr) 190px; gap: 20px; padding: 23px 0 24px; border-bottom: 1px solid var(--line); }
+    .field-label { display: block; margin-bottom: 8px; color: #6c7069; font-size: 10px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; }
+    .meta-input { width: 100%; border: 0; border-bottom: 1px solid #d6d6cd; border-radius: 0; padding: 5px 0 8px; outline: none; background: transparent; color: var(--ink); font-family: var(--serif); font-size: 18px; }
+    .meta-input:focus { border-color: var(--green); }
+    .date-input { font-family: var(--sans); font-size: 14px; }
+    .editor-head { display: flex; align-items: end; justify-content: space-between; gap: 18px; padding: 26px 0 15px; }
+    .editor-heading { margin: 0; font-family: var(--serif); font-size: 20px; font-weight: 600; }
+    .editor-subtitle { margin: 5px 0 0; color: var(--muted); font-size: 12px; }
+    .member-tools { display: flex; align-items: center; gap: 7px; }
+    .small-button { min-height: 32px; border: 1px solid var(--line); border-radius: 5px; padding: 0 9px; background: var(--white); cursor: pointer; color: #4f544d; font-size: 11px; font-weight: 600; }
+    .small-button:hover { border-color: #9ca89e; }
+    .small-button.danger:hover { border-color: #d8a99c; color: #a64b37; }
+    .section-list { display: grid; gap: 13px; }
+    .entry-section { padding: 17px 18px 15px; border: 1px solid var(--line); border-radius: 7px; background: var(--white); animation: settle .35s both; }
+    .entry-section:nth-child(2) { animation-delay: .04s; }
+    .entry-section:nth-child(3) { animation-delay: .08s; }
+    @keyframes settle { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+    .section-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 10px; }
+    .section-title { display: flex; align-items: center; gap: 9px; margin: 0; font-size: 13px; font-weight: 700; }
+    .section-number { width: 23px; height: 23px; display: grid; place-items: center; border-radius: 6px; background: var(--green-pale); color: var(--green-dark); font-size: 10px; }
+    .entry-section:nth-child(3) .section-number { background: var(--coral-pale); color: #a35039; }
+    .section-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 6px; }
+    .text-area { display: block; width: 100%; min-height: 86px; resize: vertical; border: 1px solid #e8e7df; border-radius: 5px; padding: 11px 12px; outline: none; background: #fff; color: var(--ink); line-height: 1.6; font-size: 13px; }
+    .text-area:focus { border-color: #78a996; box-shadow: 0 0 0 3px #176b5710; }
+    .text-area::placeholder { color: #a3a49d; }
+    .field-hint { display: flex; justify-content: space-between; gap: 10px; margin: 7px 1px 0; color: #91938c; font-size: 10px; }
+    .field-hint .voice-note { color: #8a8c84; }
+    .recording { color: #bd543e !important; }
+    .footer-note { margin: 22px 0 0; color: #8c8d86; font-size: 11px; text-align: center; }
+    dialog { width: min(460px, calc(100% - 28px)); padding: 0; border: 1px solid var(--line); border-radius: 8px; background: var(--white); color: var(--ink); box-shadow: 0 24px 80px #20231f30; }
+    dialog::backdrop { background: #20231f70; backdrop-filter: blur(2px); }
+    .dialog-content { padding: 24px; }
+    .dialog-title { margin: 0; font-family: var(--serif); font-size: 22px; }
+    .dialog-copy { margin: 9px 0 19px; color: #72756e; font-size: 12px; line-height: 1.6; }
+    .dialog-input { width: 100%; height: 40px; border: 1px solid var(--line); border-radius: 5px; padding: 0 10px; outline: none; }
+    .dialog-input:focus { border-color: var(--green); }
+    .dialog-actions { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-top: 18px; }
+    .dialog-actions-right { display: flex; gap: 8px; }
+    .text-link { border: 0; padding: 5px 0; background: transparent; color: var(--green-dark); cursor: pointer; font-size: 11px; text-decoration: underline; }
+    .toast { position: fixed; right: 22px; bottom: 20px; z-index: 10; max-width: calc(100% - 44px); padding: 11px 15px; border-radius: 6px; background: #252a26; color: white; box-shadow: 0 5px 20px #20231f24; font-size: 12px; animation: settle .2s both; }
+    #print-report { display: none; }
+    @media (max-width: 760px) {
+      .app-shell { grid-template-columns: 1fr; }
+      .app-shell > * { min-width: 0; }
+      .rail { position: static; width: 100%; height: auto; padding: 13px 16px 10px; border-right: 0; border-bottom: 1px solid var(--line); }
+      .brand { padding: 0 2px 12px; }
+      .rail-label, .rail-bottom { display: none; }
+      .member-list { display: flex; overflow-x: auto; gap: 6px; padding: 0 0 3px; scrollbar-width: thin; }
+      .member-button { width: auto; flex: 0 0 auto; gap: 7px; padding: 6px 9px 6px 6px; border: 1px solid transparent; }
+      .member-button.active { border-color: var(--line); }
+      .member-progress { margin-left: 1px; }
+      .add-member { display: block; align-self: flex-start; margin: 5px 0 0 2px; padding: 7px 9px; border-style: solid; white-space: nowrap; }
+      .workspace { padding: 24px 18px 42px; }
+      .topline { align-items: center; gap: 12px; }
+      .top-actions { gap: 6px; }
+      .button { min-height: 35px; padding: 0 10px; font-size: 11px; }
+      .daily-meta { grid-template-columns: 1fr; gap: 16px; padding: 19px 0; }
+      .date-input { max-width: 220px; }
+      .editor-head { align-items: flex-start; }
+      .member-tools { flex-wrap: wrap; justify-content: flex-end; }
+      .entry-section { padding: 14px 12px 12px; }
+      .section-top { align-items: flex-start; }
+      .small-button { padding: 0 7px; font-size: 10px; }
+    }
+    @media (max-width: 420px) {
+      .topline { align-items: flex-start; flex-direction: column; }
+      .top-actions { display: grid; width: 100%; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .top-actions .button { width: 100%; min-width: 0; padding: 0 6px; }
+      .editor-head { flex-direction: column; align-items: stretch; }
+      .member-tools { justify-content: flex-start; }
+      .section-top { flex-wrap: wrap; }
+    }
+    @media print {
+      @page { size: A4; margin: 22mm 22mm 23mm; }
+      body { background: white; color: #111; font-family: Georgia, "Times New Roman", serif; font-size: 11.5pt; }
+      .app-shell, dialog, .toast { display: none !important; }
+      #print-report { display: block; }
+      .print-header { text-align: center; padding: 5mm 0 14mm; }
+      .print-title { margin: 0; font-family: Georgia, "Times New Roman", serif; font-size: 23pt; font-weight: 700; text-decoration: underline; text-underline-offset: 4px; }
+      .print-date { margin: 9mm 0 0; color: #555; font-size: 10pt; }
+      .print-members { margin: 8mm auto 0; color: #333; font-size: 10pt; font-style: italic; line-height: 1.9; }
+      .print-section { margin: 0 0 9mm; break-inside: avoid; }
+      .print-section h2 { margin: 0 0 4mm; font-size: 17pt; }
+      .print-person { margin: 0 0 4mm; break-inside: avoid; }
+      .print-person h3 { margin: 0 0 1.5mm; font-size: 11pt; font-style: italic; }
+      .print-person ul { margin: 0; padding-left: 7mm; }
+      .print-person li { margin: 0 0 1.6mm; line-height: 1.55; }
+      .print-empty { color: #777; font-style: italic; }
+      .print-footer { margin-top: 18mm; padding-top: 3mm; border-top: 1px solid #ccc; color: #777; font-size: 9pt; text-align: right; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="rail">
+      <div class="brand">
+        <div class="brand-mark" aria-hidden="true">D</div>
+        <div><div class="brand-name">Cuaderno Daily</div><div class="brand-caption">Los Compil4dos</div></div>
+      </div>
+      <div class="rail-label">Integrantes</div>
+      <nav id="member-list" class="member-list" aria-label="Integrantes del equipo"></nav>
+      <button id="add-member" class="add-member" type="button">+ Añadir integrante</button>
+      <div class="rail-bottom"><div class="autosave"><span class="save-dot"></span><span>Guardado en este dispositivo</span></div></div>
+    </aside>
+
+    <main class="workspace">
+      <header class="topline">
+        <div><div class="eyebrow">Parte diario del equipo</div><h1>Daily de trabajo</h1></div>
+        <div class="top-actions">
+          <button id="ai-settings" class="button button-quiet" type="button" title="Configurar la mejora con IA">Ajustes de IA</button>
+          <button id="clear-all" class="button button-danger" type="button">Borrar aportes</button>
+          <button id="export-pdf" class="button button-primary" type="button">Exportar PDF</button>
+        </div>
+      </header>
+
+      <section class="daily-meta" aria-label="Datos del daily">
+        <label><span class="field-label">Nombre del informe</span><input id="daily-title" class="meta-input" value="Daily Grupo Los Compil4dos" maxlength="100"></label>
+        <label><span class="field-label">Fecha</span><input id="daily-date" class="meta-input date-input" type="date"></label>
+      </section>
+
+      <div class="editor-head">
+        <div><h2 id="editor-heading" class="editor-heading">Aportación individual</h2><p class="editor-subtitle">Cada integrante completa sus avances por separado.</p></div>
+        <div class="member-tools">
+          <button id="rename-member" class="small-button" type="button">Cambiar nombre</button>
+          <button id="remove-member" class="small-button danger" type="button">Eliminar</button>
+        </div>
+      </div>
+      <div id="member-content" class="section-list"></div>
+      <p class="footer-note">Los cambios se guardan automáticamente en este navegador.</p>
+    </main>
+  </div>
+
+  <section id="print-report" aria-label="Informe para imprimir"></section>
+
+  <dialog id="ai-dialog">
+    <form id="ai-form" class="dialog-content">
+      <h2 class="dialog-title">Mejora con Gemini</h2>
+      <p class="dialog-copy">Añade una clave de Google AI Studio para corregir y ordenar el texto sin cambiar su significado. El texto elegido se enviará a Google para revisarlo. La clave se guarda solo en este navegador; el uso gratuito depende de los límites de Google.</p>
+      <label class="field-label" for="api-key">Clave de API</label>
+      <input id="api-key" class="dialog-input" type="password" autocomplete="off" placeholder="AIza…">
+      <div class="dialog-actions">
+        <a class="text-link" href="https://aistudio.google.com/app/apikey" target="_blank" rel="noreferrer">Obtener una clave</a>
+        <div class="dialog-actions-right"><button id="clear-key" class="small-button" type="button">Quitar clave</button><button class="button" type="button" data-close-dialog>Cancelar</button><button class="button button-primary" type="submit">Guardar</button></div>
+      </div>
+    </form>
+  </dialog>
+  <dialog id="member-dialog">
+    <form id="member-form" class="dialog-content">
+      <h2 id="member-dialog-title" class="dialog-title">Añadir integrante</h2>
+      <p id="member-dialog-copy" class="dialog-copy">Incluye a las personas que participan en este daily.</p>
+      <label class="field-label" for="member-name">Nombre</label>
+      <input id="member-name" class="dialog-input" maxlength="80" required placeholder="Nombre y apellidos">
+      <div class="dialog-actions"><span></span><div class="dialog-actions-right"><button class="button" type="button" data-close-member-dialog>Cancelar</button><button id="member-dialog-submit" class="button button-primary" type="submit">Añadir</button></div></div>
+    </form>
+  </dialog>
+  <div id="toast-region" aria-live="polite"></div>
+
+  <script>
+    const STORE_KEY = "cuaderno-daily-v1";
+    const LAST_EXPORT_KEY = "cuaderno-daily-last-export-v1";
+    const API_KEY_STORAGE = "cuaderno-daily-gemini-key";
+    const fields = [
+      { id: "yesterday", number: "01", title: "Qué hicimos ayer", placeholder: "Cuenta los avances, tareas terminadas o decisiones de ayer…" },
+      { id: "today", number: "02", title: "Qué hicimos hoy", placeholder: "Cuenta los avances y tareas completadas hoy…" },
+      { id: "problems", number: "03", title: "Problemas", placeholder: "¿Hay bloqueos, dudas o algo que necesite ayuda?" }
+    ];
+    const defaultMembers = ["Younes El Hailoufi Chemakha", "Boubacar Seck", "Richard Enrich", "Dhruva Mehta"];
+    const today = new Date();
+    const localDate = new Date(today.getTime() - today.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
+    const makeMember = (name) => ({ id: crypto.randomUUID(), name, yesterday: "", today: "", problems: "" });
+    const freshState = () => ({ title: "Daily Grupo Los Compil4dos", date: localDate, members: defaultMembers.map(makeMember), activeId: "" });
+    let state;
+    try {
+      const saved = JSON.parse(localStorage.getItem(STORE_KEY));
+      state = saved && Array.isArray(saved.members) && saved.members.length ? saved : freshState();
+    } catch { state = freshState(); }
+    if (!state.activeId || !state.members.some((member) => member.id === state.activeId)) state.activeId = state.members[0].id;
+    state.date = localDate;
+
+    const memberList = document.querySelector("#member-list");
+    const memberContent = document.querySelector("#member-content");
+    const dialog = document.querySelector("#ai-dialog");
+    const memberDialog = document.querySelector("#member-dialog");
+    let memberDialogMode = "add";
+    let toastTimer;
+    let activeRecognition = null;
+
+    function escapeHtml(value) {
+      return String(value).replace(/[&<>"']/g, (char) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[char]);
+    }
+    function activeMember() { return state.members.find((member) => member.id === state.activeId); }
+    function persist() { localStorage.setItem(STORE_KEY, JSON.stringify(state)); }
+    function loadLastExportedDaily() {
+      try {
+        const saved = JSON.parse(localStorage.getItem(LAST_EXPORT_KEY));
+        return saved && Array.isArray(saved.members) ? saved : null;
+      } catch { return null; }
+    }
+    function saveLastExportedDaily() {
+      try {
+        localStorage.setItem(LAST_EXPORT_KEY, JSON.stringify({ ...state, exportedAt: new Date().toISOString() }));
+      } catch { toast("No se pudo guardar una copia local del daily exportado."); }
+    }
+    function initials(name) { return name.trim().split(/\s+/).slice(0, 2).map((part) => part[0] || "").join("").toUpperCase(); }
+    function hasContent(member) { return fields.some(({ id }) => member[id].trim()); }
+    function toast(message) {
+      const region = document.querySelector("#toast-region");
+      region.innerHTML = `<div class="toast">${escapeHtml(message)}</div>`;
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => { region.innerHTML = ""; }, 3200);
+    }
+    function render() {
+      const member = activeMember();
+      document.querySelector("#daily-title").value = state.title;
+      document.querySelector("#daily-date").value = state.date;
+      memberList.innerHTML = state.members.map((person) => `
+        <button class="member-button ${person.id === state.activeId ? "active" : ""}" type="button" data-member="${escapeHtml(person.id)}" aria-current="${person.id === state.activeId ? "true" : "false"}">
+          <span class="avatar">${escapeHtml(initials(person.name))}</span><span class="member-name">${escapeHtml(person.name)}</span><span class="member-progress ${hasContent(person) ? "done" : ""}" title="${hasContent(person) ? "Con aportes" : "Sin aportes"}"></span>
+        </button>`).join("");
+      document.querySelector("#editor-heading").textContent = member.name;
+      document.querySelector("#remove-member").disabled = state.members.length <= 1;
+      memberContent.innerHTML = fields.map(({ id, number, title, placeholder }) => `
+        <section class="entry-section">
+          <div class="section-top"><h3 class="section-title"><span class="section-number">${number}</span>${title}</h3>
+            <div class="section-actions"><button class="small-button" type="button" data-polish="${id}" title="Reescribir este texto con Gemini">Mejorar con IA</button><button class="small-button voice-button" type="button" data-dictate="${id}" title="Dictar con el micrófono del navegador">Dictar voz</button>${id === "today" ? '<button class="small-button" type="button" data-move-today title="Pasa las aportaciones de todos los integrantes a ayer o recupera el último PDF">Pasar hoy a ayer</button>' : ""}<button class="small-button danger" type="button" data-clear-field="${id}" title="Borrar solo esta celda">Borrar celda</button></div>
+          </div>
+          <textarea class="text-area" data-field="${id}" placeholder="${placeholder}" aria-label="${title} de ${escapeHtml(member.name)}">${escapeHtml(member[id])}</textarea>
+          <div class="field-hint"><span>Separa varios puntos con saltos de línea.</span><span class="voice-note" data-voice-status="${id}">El dictado requiere un navegador compatible.</span></div>
+        </section>`).join("");
+      document.querySelectorAll("#member-content .text-area").forEach((area) => {
+        area.addEventListener("input", () => {
+          member[area.dataset.field] = area.value;
+          persist();
+          updateProgress(member);
+        });
+      });
+    }
+    function updateProgress(member) {
+      const button = memberList.querySelector(`[data-member="${CSS.escape(member.id)}"] .member-progress`);
+      if (button) button.classList.toggle("done", hasContent(member));
+    }
+    function openMemberDialog(mode) {
+      memberDialogMode = mode;
+      const isAdding = mode === "add";
+      document.querySelector("#member-dialog-title").textContent = isAdding ? "Añadir integrante" : "Cambiar nombre";
+      document.querySelector("#member-dialog-copy").textContent = isAdding ? "Incluye a las personas que participan en este daily." : "Actualiza el nombre que aparecerá en el informe.";
+      document.querySelector("#member-dialog-submit").textContent = isAdding ? "Añadir" : "Guardar";
+      document.querySelector("#member-name").value = isAdding ? "" : activeMember().name;
+      memberDialog.showModal();
+      document.querySelector("#member-name").focus();
+    }
+    function addMember() { openMemberDialog("add"); }
+    function renameMember() { openMemberDialog("rename"); }
+    function removeMember() {
+      if (state.members.length <= 1) return;
+      const member = activeMember();
+      if (!confirm(`¿Eliminar a ${member.name} y sus aportaciones de este daily?`)) return;
+      const oldIndex = state.members.findIndex((person) => person.id === member.id);
+      state.members = state.members.filter((person) => person.id !== member.id);
+      state.activeId = state.members[Math.max(0, oldIndex - 1)].id;
+      persist(); render();
+    }
+    function clearAllEntries() {
+      if (!state.members.some(hasContent)) { toast("No hay aportaciones que borrar."); return; }
+      if (!confirm("¿Borrar todas las aportaciones escritas de todos los integrantes? Esta acción no se puede deshacer.")) return;
+      state.members.forEach((member) => fields.forEach(({ id }) => { member[id] = ""; }));
+      persist(); render(); toast("Se han borrado todas las aportaciones.");
+    }
+    function clearCell(fieldId) {
+      if (!fields.some((field) => field.id === fieldId)) return;
+      const member = activeMember();
+      member[fieldId] = "";
+      const area = memberContent.querySelector(`[data-field="${fieldId}"]`);
+      if (area) area.value = "";
+      persist(); updateProgress(member); toast("Se ha borrado solo esta celda.");
+    }
+    function moveTodayToYesterday() {
+      if (!state.members.some((member) => member.today.trim())) {
+        const lastExport = loadLastExportedDaily();
+        if (!lastExport) { toast("No hay aportaciones de hoy ni un PDF anterior guardado."); return; }
+        const updates = state.members.flatMap((member) => {
+          const previousMember = lastExport.members.find((person) => person.id && person.id === member.id)
+            || lastExport.members.find((person) => person.name?.trim().toLocaleLowerCase() === member.name.trim().toLocaleLowerCase());
+          return previousMember?.today?.trim() ? [{ member, yesterday: previousMember.today }] : [];
+        });
+        if (!updates.length) { toast("El último PDF no contiene aportaciones de hoy para estos integrantes."); return; }
+        if (updates.some(({ member }) => member.yesterday.trim()) && !confirm("Las aportaciones recuperadas reemplazarán el contenido actual de ayer. ¿Continuar?")) return;
+        updates.forEach(({ member, yesterday }) => { member.yesterday = yesterday; });
+        state.members.forEach((member) => { member.today = ""; });
+        persist(); render(); toast("Se recuperaron las aportaciones del último PDF en ayer.");
+        return;
+      }
+      const replacesYesterday = state.members.some((member) => member.today.trim() && member.yesterday.trim());
+      const message = replacesYesterday
+        ? "Las aportaciones de hoy reemplazarán las de ayer para los integrantes que tengan ambos campos completos. ¿Continuar y vaciar hoy?"
+        : "¿Pasar las aportaciones de hoy a ayer y dejar vacíos los campos de hoy?";
+      if (!confirm(message)) return;
+      state.members.forEach((member) => {
+        if (member.today.trim()) member.yesterday = member.today;
+        member.today = "";
+      });
+      persist(); render(); toast("Las aportaciones de hoy se han pasado a ayer.");
+    }
+    function dictation(fieldId, button) {
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      if (!SpeechRecognition) { toast("Este navegador no incluye dictado de voz. Prueba Chrome o Edge."); return; }
+      if (activeRecognition) { activeRecognition.stop(); activeRecognition = null; return; }
+      const recognition = new SpeechRecognition();
+      const area = memberContent.querySelector(`[data-field="${fieldId}"]`);
+      const status = memberContent.querySelector(`[data-voice-status="${fieldId}"]`);
+      const original = area.value;
+      recognition.lang = "es-ES";
+      recognition.continuous = true;
+      recognition.interimResults = false;
+      activeRecognition = recognition;
+      button.textContent = "Detener";
+      status.textContent = "Escuchando…";
+      status.classList.add("recording");
+      recognition.onresult = (event) => {
+        const spoken = Array.from(event.results).slice(event.resultIndex).map((result) => result[0].transcript.trim()).filter(Boolean).join(". ");
+        if (spoken) {
+          const separator = area.value && !/[\s\n]$/.test(area.value) ? " " : "";
+          area.value = `${area.value}${separator}${spoken}`;
+          area.dispatchEvent(new Event("input", { bubbles: true }));
+        }
+      };
+      recognition.onerror = (event) => toast(event.error === "not-allowed" ? "Permite el acceso al micrófono para dictar." : "No se pudo completar el dictado.");
+      recognition.onend = () => {
+        button.textContent = "Dictar voz";
+        status.textContent = "El dictado requiere un navegador compatible.";
+        status.classList.remove("recording");
+        if (activeRecognition === recognition) activeRecognition = null;
+        if (area.value === original && !area.value.trim()) toast("No se detectó voz. Comprueba el micrófono y vuelve a intentarlo.");
+      };
+      recognition.start();
+    }
+    async function polish(fieldId, button) {
+      const apiKey = localStorage.getItem(API_KEY_STORAGE);
+      if (!apiKey) { dialog.showModal(); return; }
+      const area = memberContent.querySelector(`[data-field="${fieldId}"]`);
+      if (!area.value.trim()) { toast("Escribe o dicta algo antes de pedir la mejora."); return; }
+      const originalText = area.value;
+      button.disabled = true;
+      button.textContent = "Revisando…";
+      try {
+        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash-lite:generateContent?key=${encodeURIComponent(apiKey)}`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            contents: [{ parts: [{ text: `Corrige ortografía y gramática, mejora la claridad y conserva el sentido, los hechos y el idioma español. Mantén los saltos de línea como puntos separados. Devuelve solo el texto revisado, sin introducciones ni comillas.\n\n${originalText}` }] }],
+            generationConfig: { temperature: 0.2 }
+          })
+        });
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.error?.message || "La petición a Gemini no se completó.");
+        const improved = result.candidates?.[0]?.content?.parts?.map((part) => part.text || "").join("").trim();
+        if (!improved) throw new Error("Gemini no devolvió texto.");
+        area.value = improved;
+        area.dispatchEvent(new Event("input", { bubbles: true }));
+        toast("Texto revisado. Comprueba que mantiene el sentido original.");
+      } catch (error) {
+        toast(error.message || "No se pudo conectar con Gemini.");
+      } finally {
+        button.disabled = false;
+        button.textContent = "Mejorar con IA";
+      }
+    }
+    function reportHtml() {
+      const dateText = state.date ? new Date(`${state.date}T12:00:00`).toLocaleDateString("es-ES", { day: "numeric", month: "long", year: "numeric" }) : "";
+      const sections = fields.map(({ id, number, title }) => {
+        const people = state.members.filter((member) => member[id].trim()).map((member) => {
+          const lines = member[id].split(/\n+/).map((line) => line.trim()).filter(Boolean);
+          return `<div class="print-person"><h3>${escapeHtml(member.name)}</h3><ul>${lines.map((line) => `<li>${escapeHtml(line)}</li>`).join("")}</ul></div>`;
+        }).join("");
+        return `<section class="print-section"><h2>${number.replace(/^0/, "")}. ${title}</h2>${people || '<p class="print-empty">Sin aportaciones.</p>'}</section>`;
+      }).join("");
+      return `<header class="print-header"><h1 class="print-title">${escapeHtml(state.title)}</h1><p class="print-date">${escapeHtml(dateText)}</p><div class="print-members">${state.members.map((member) => escapeHtml(member.name)).join(" &nbsp; · &nbsp; ")}</div></header>${sections}<footer class="print-footer">Daily de equipo · ${escapeHtml(dateText)}</footer>`;
+    }
+
+    memberList.addEventListener("click", (event) => {
+      const button = event.target.closest("[data-member]");
+      if (!button) return;
+      state.activeId = button.dataset.member; persist(); render();
+    });
+    memberContent.addEventListener("click", (event) => {
+      const dictateButton = event.target.closest("[data-dictate]");
+      const polishButton = event.target.closest("[data-polish]");
+      const moveButton = event.target.closest("[data-move-today]");
+      const clearButton = event.target.closest("[data-clear-field]");
+      if (moveButton) { moveTodayToYesterday(); return; }
+      if (clearButton) { clearCell(clearButton.dataset.clearField); return; }
+      if (dictateButton) dictation(dictateButton.dataset.dictate, dictateButton);
+      if (polishButton) polish(polishButton.dataset.polish, polishButton);
+    });
+    document.querySelector("#daily-title").addEventListener("input", (event) => { state.title = event.target.value; persist(); });
+    document.querySelector("#daily-date").addEventListener("input", (event) => { state.date = event.target.value; persist(); });
+    document.querySelector("#add-member").addEventListener("click", addMember);
+    document.querySelector("#rename-member").addEventListener("click", renameMember);
+    document.querySelector("#remove-member").addEventListener("click", removeMember);
+    document.querySelector("#clear-all").addEventListener("click", clearAllEntries);
+    document.querySelector("#export-pdf").addEventListener("click", () => {
+      saveLastExportedDaily();
+      document.querySelector("#print-report").innerHTML = reportHtml();
+      window.print();
+    });
+    document.querySelector("#ai-settings").addEventListener("click", () => {
+      document.querySelector("#api-key").value = localStorage.getItem(API_KEY_STORAGE) || "";
+      dialog.showModal();
+    });
+    document.querySelector("#ai-form").addEventListener("submit", (event) => {
+      event.preventDefault();
+      const key = document.querySelector("#api-key").value.trim();
+      if (!key) { toast("Añade una clave para guardar la configuración."); return; }
+      localStorage.setItem(API_KEY_STORAGE, key);
+      dialog.close(); toast("Clave guardada en este navegador.");
+    });
+    document.querySelector("#clear-key").addEventListener("click", () => {
+      localStorage.removeItem(API_KEY_STORAGE);
+      document.querySelector("#api-key").value = "";
+      dialog.close(); toast("Clave eliminada.");
+    });
+    dialog.addEventListener("click", (event) => { if (event.target === dialog || event.target.closest("[data-close-dialog]")) dialog.close(); });
+    document.querySelector("#member-form").addEventListener("submit", (event) => {
+      event.preventDefault();
+      const name = document.querySelector("#member-name").value.trim();
+      if (!name) return;
+      if (memberDialogMode === "add") {
+        const person = makeMember(name);
+        state.members.push(person);
+        state.activeId = person.id;
+      } else {
+        activeMember().name = name;
+      }
+      memberDialog.close();
+      persist(); render();
+    });
+    memberDialog.addEventListener("click", (event) => { if (event.target === memberDialog || event.target.closest("[data-close-member-dialog]")) memberDialog.close(); });
+    render();
+    persist();
+  </script>
+</body>
+</html>
